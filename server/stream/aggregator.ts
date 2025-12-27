@@ -15,9 +15,9 @@ import { getSSEBroker } from "@/server/sse/broker";
 
 const INTERSECTIONS: IntersectionId[] = ["I1", "I2", "I3", "I4"];
 const PHASES: SignalPhase[] = ["NS", "EW"];
-const HISTORY_LIMIT = 30; // ~5 minutes of 10s windows
+const HISTORY_LIMIT = 30; // ~2.5 minutes of 5s windows
 const WINDOW_MS = {
-  "10s": 10_000,
+  "5s": 5_000,
   "60s": 60_000,
 } as const;
 
@@ -54,7 +54,7 @@ class StreamAggregator {
         while (timestamp - state.windowStart >= windowMs) {
           const closed = this.finalizeWindow(duration, sample.intersectionId, sample.phase, state, config);
           if (closed) {
-            if (duration === "10s") shortClosed = true;
+            if (duration === "5s") shortClosed = true;
             if (duration === "60s") longClosed = true;
           }
           state.windowStart += windowMs;
@@ -119,7 +119,7 @@ class StreamAggregator {
 
     this.latestSnapshot[duration][intersection][phase] = metrics;
 
-    if (duration === "10s") {
+    if (duration === "5s") {
       this.handleCongestionTracking(intersection, phase, state, congestionScore, config);
     }
 
@@ -160,7 +160,7 @@ class StreamAggregator {
   private publishSnapshot(timestamp: number) {
     this.latestSnapshot.updatedAt = new Date(timestamp).toISOString();
 
-    const phases = this.flattenWindow(this.latestSnapshot["10s"]);
+    const phases = this.flattenWindow(this.latestSnapshot["5s"]);
     const avgQueue = this.averageFrom(phases, (metric) => metric.queueLength);
     const avgThroughput = this.averageFrom(phases, (metric) => metric.throughput ?? metric.departures);
     const avgDelay = this.averageFrom(phases, (metric) => metric.delayProxy ?? 0);
@@ -192,9 +192,9 @@ class StreamAggregator {
   }
 
   private computeCongestionScore(avgQueue: number, delayProxy: number, config: SimulatorConfig) {
-    const normalizedQueue = avgQueue / Math.max(config.threshold, 1);
-    const normalizedDelay = delayProxy / 5;
-    return Math.min(100, Math.round(normalizedQueue * 60 + normalizedDelay * 40));
+    const normalizedQueue = Math.min(1, avgQueue / Math.max(config.threshold, 1));
+    const normalizedDelay = Math.min(1, delayProxy / 5);
+    return Math.round(normalizedQueue * 70 + normalizedDelay * 30);
   }
 
   private alertThreshold(config: SimulatorConfig) {
@@ -235,7 +235,7 @@ class StreamAggregator {
     const factory = () => this.buildMetricsWindow(() => this.emptyMetrics());
     return {
       updatedAt: new Date().toISOString(),
-      "10s": factory(),
+      "5s": factory(),
       "60s": factory(),
     };
   }
@@ -277,7 +277,7 @@ class StreamAggregator {
   private cloneSnapshot(): MetricsSnapshot {
     return {
       updatedAt: this.latestSnapshot.updatedAt,
-      "10s": this.cloneWindow(this.latestSnapshot["10s"]),
+      "5s": this.cloneWindow(this.latestSnapshot["5s"]),
       "60s": this.cloneWindow(this.latestSnapshot["60s"]),
     };
   }
@@ -315,7 +315,7 @@ class StreamAggregator {
 
   private buildPayload(timestamp: number): MetricsStreamPayload {
     this.latestSnapshot.updatedAt = new Date(timestamp).toISOString();
-    const phases = this.flattenWindow(this.latestSnapshot["10s"]);
+    const phases = this.flattenWindow(this.latestSnapshot["5s"]);
     const avgQueue = this.averageFrom(phases, (m) => m.queueLength);
     const avgThroughput = this.averageFrom(phases, (m) => m.throughput ?? m.departures);
     const avgDelay = this.averageFrom(phases, (m) => m.delayProxy ?? 0);

@@ -7,17 +7,17 @@ const scenarios = [
   {
     name: "Event surge",
     description: "Model a 20% bump on arrivals",
-    payload: { baseArrivalRate: 14.4 },
+    payload: { baseArrivalRate: 15 },
   },
   {
     name: "Lane closure",
-    description: "Reduce throughput by 35%",
-    payload: { incident: 1.35 },
+    description: "Shift traffic to NS by throttling EW",
+    payload: { ewDemandMultiplier: 0.65 },
   },
   {
     name: "Rush hour peak",
     description: "Simulate peak demand period",
-    payload: { rushHour: 2.0 },
+    payload: { nsDemandMultiplier: 1.8 },
   },
 ];
 

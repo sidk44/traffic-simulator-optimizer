@@ -13,6 +13,8 @@ const numericKeys = [
   "beta",
   "epsilon",
   "threshold",
+  "nsDemandMultiplier",
+  "ewDemandMultiplier",
 ] as const;
 
 const booleanKeys = [
@@ -36,6 +38,9 @@ function clamp(key: NumericConfigKey, value: number) {
     case "rushHour":
     case "incident":
       return Math.max(0.1, value);
+    case "nsDemandMultiplier":
+    case "ewDemandMultiplier":
+      return Math.min(3, Math.max(0.2, value));
     default:
       return value;
   }

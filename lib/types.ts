@@ -26,7 +26,7 @@ export type MetricsWindow = Record<IntersectionId, Record<SignalPhase, PhaseMetr
 
 export interface MetricsSnapshot {
   updatedAt: string;
-  "10s": MetricsWindow;
+  "5s": MetricsWindow;
   "60s": MetricsWindow;
 }
 
@@ -121,6 +121,8 @@ export interface SimulatorConfig {
   threshold: number;
   sensorNoise: boolean;
   packetLoss: boolean;
+  nsDemandMultiplier: number;
+  ewDemandMultiplier: number;
 }
 
 export type PhaseQueues = Record<IntersectionId, Record<SignalPhase, number>>;

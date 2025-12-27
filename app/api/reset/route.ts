@@ -1,6 +1,10 @@
 import { getSSEBroker } from "@/server/sse/broker";
 import { getStreamAggregator } from "@/server/stream/aggregator";
-import { getSimulatorState, INTERSECTIONS } from "@/server/sim/state";
+import {
+  DEFAULT_CONFIG,
+  getSimulatorState,
+  INTERSECTIONS,
+} from "@/server/sim/state";
 import { IntersectionId, TrafficEvent } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -14,7 +18,7 @@ export async function POST() {
     // Reset simulator to baseline
     simulator.restoreBaselinePlan();
     simulator.resetStarvation();
-    simulator.updateConfig({ applyOptimizedPlan: false });
+    simulator.updateConfig({ ...DEFAULT_CONFIG });
 
     // Build default baseline plan with metadata
     const plan = simulator.getPlan();

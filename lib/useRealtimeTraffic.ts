@@ -28,55 +28,25 @@ const defaultPlan: SignalPlan = {
   },
 };
 
-const initialAlerts: Alert[] = [
-  {
-    id: "alert-1",
-    level: "warning",
-    message: "Queue spillback detected at I2 northbound",
-    intersectionId: "I2",
-    phase: "NS",
-    ts: new Date().toISOString(),
-  },
-  {
-    id: "alert-2",
-    level: "info",
-    message: "Pedestrian recall active at I4",
-    intersectionId: "I4",
-    phase: "EW",
-    ts: new Date().toISOString(),
-  },
-];
+const initialAlerts: Alert[] = [];
 
 const initialSeries: TrafficTimeSeries = {
-  queue: Array.from({ length: 8 }, (_, idx) => ({
-    ts: `${idx * 5}s`,
-    value: 8 + Math.sin(idx) * 3,
-  })),
-  speed: Array.from({ length: 8 }, (_, idx) => ({
-    ts: `${idx * 5}s`,
-    value: 32 + Math.cos(idx) * 4,
-  })),
-  throughput: Array.from({ length: 8 }, (_, idx) => ({
-    ts: `${idx * 5}s`,
-    value: 40 + Math.sin(idx / 2) * 6,
-  })),
+  queue: [],
+  speed: [],
+  throughput: [],
 };
-
-function randomBetween(min: number, max: number) {
-  return Math.round(Math.random() * (max - min) + min);
-}
 
 function buildMetricsWindow(): MetricsWindow {
   return INTERSECTIONS.reduce((intersectionAcc, intersection) => {
     intersectionAcc[intersection] = PHASES.reduce((phaseAcc, phase) => {
       phaseAcc[phase] = {
-        queueLength: randomBetween(3, 20),
-        avgSpeed: randomBetween(18, 45),
-        arrivals: randomBetween(5, 20),
-        departures: randomBetween(5, 20),
-        throughput: randomBetween(5, 20),
-        delayProxy: randomBetween(0, 30),
-        congestionScore: Math.random(),
+        queueLength: 0,
+        avgSpeed: 0,
+        arrivals: 0,
+        departures: 0,
+        throughput: 0,
+        delayProxy: 0,
+        congestionScore: 0,
       };
       return phaseAcc;
     }, {} as MetricsWindow[IntersectionId]);
@@ -87,30 +57,13 @@ function buildMetricsWindow(): MetricsWindow {
 function buildMetricsSnapshot(): MetricsSnapshot {
   return {
     updatedAt: new Date().toISOString(),
-    "10s": buildMetricsWindow(),
+    "5s": buildMetricsWindow(),
     "60s": buildMetricsWindow(),
   };
 }
 
-function buildMockEvent(): TrafficEvent {
-  const intersection = INTERSECTIONS[randomBetween(0, INTERSECTIONS.length - 1)];
-  const phase = PHASES[randomBetween(0, PHASES.length - 1)];
-  const typePool: TrafficEvent["type"][] = ["arrival", "departure", "queue_update"];
-
-  return {
-    ts: new Date().toISOString(),
-    intersectionId: intersection,
-    phase,
-    type: typePool[randomBetween(0, typePool.length - 1)],
-    queueLength: randomBetween(2, 25),
-    speed: randomBetween(15, 45),
-  };
-}
-
 export function useRealtimeTraffic() {
-  const [events, setEvents] = useState<TrafficEvent[]>(() =>
-    Array.from({ length: 6 }, () => buildMockEvent()),
-  );
+  const [events, setEvents] = useState<TrafficEvent[]>([]);
   const [metrics, setMetrics] = useState<MetricsSnapshot>(() => buildMetricsSnapshot());
   const [signalPlan, setSignalPlan] = useState<SignalPlan>(defaultPlan);
   const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
@@ -199,7 +152,7 @@ export function useRealtimeTraffic() {
 
   type SummaryStats = { avgQueue: number; avgThroughput: number };
   const summary = useMemo<SummaryStats>(() => {
-    const phases = Object.values(metrics["10s"]).flatMap((phaseMap) => Object.values(phaseMap));
+    const phases = Object.values(metrics["5s"]).flatMap((phaseMap) => Object.values(phaseMap));
     if (phases.length === 0) {
       return { avgQueue: 0, avgThroughput: 0 };
     }

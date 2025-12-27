@@ -2,7 +2,6 @@
 
 An adaptive traffic signal optimization platform for multi-intersection traffic management. Built with Next.js 14, TypeScript, and Server-Sent Events (SSE), this system enables real-time monitoring of traffic metrics, automated signal optimization via AFAPC algorithms, and scenario-based simulation for testing adaptive control strategies.
 
-
 ---
 
 ## 🚀 Getting Started
@@ -75,8 +74,8 @@ npm start
 ### 📈 Analytics & Performance Metrics
 
 - Time-series visualization: Queue Length, Average Speed, Vehicle Throughput
-- Historical data buffer: 30-event rolling window with 10-second and 60-second aggregation
-- Real-time metric refresh: 10-second intervals
+- Historical data buffer: 30-event rolling window with 5-second and 60-second aggregation
+- Real-time metric refresh: 5-second intervals
 - Automatic trend detection and visualization via Recharts
 
 ### 🎛️ Adaptive Signal Optimization
@@ -123,7 +122,7 @@ npm start
 - **Server Runtime:** Node.js with Next.js API Routes
 - **Real-time Communication:** Server-Sent Events (SSE) for state broadcast
 - **Traffic Simulator:** 1 Hz tick-based generator with stochastic demand
-- **Metrics Aggregation:** 10-second and 60-second rolling windows with alert thresholding
+- **Metrics Aggregation:** 5-second and 60-second rolling windows with alert thresholding
 - **Signal Optimizer:** AFAPC algorithm with MPC-lite heuristic
 - **State Management:** Intersection queues, vehicle buffers, phase starvation counters
 
@@ -269,10 +268,8 @@ The adaptive optimizer implements a two-stage approach:
 
 ---
 
-
 ## 📚 Additional Resources
 
 - **Next.js Documentation:** [nextjs.org](https://nextjs.org/docs)
 - **TypeScript Handbook:** [typescriptlang.org](https://www.typescriptlang.org/docs/)
 - **Recharts Gallery:** [recharts.org](https://recharts.org/)
-

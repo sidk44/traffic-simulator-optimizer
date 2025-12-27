@@ -2,6 +2,7 @@ import {
   IntersectionId,
   PhaseQueues,
   PhaseSample,
+  PlanMeta,
   PropagationBuffers,
   SignalPhase,
   SignalPlan,
@@ -24,7 +25,7 @@ const BASE_PLAN: SignalPlan = {
   }, {} as SignalPlan["splits"]),
 };
 
-const DEFAULT_CONFIG: SimulatorConfig = {
+export const DEFAULT_CONFIG: SimulatorConfig = {
   baseArrivalRate: 12,
   rushHour: 1.6,
   incident: 1.2,
@@ -35,6 +36,8 @@ const DEFAULT_CONFIG: SimulatorConfig = {
   threshold: 18,
   sensorNoise: false,
   packetLoss: false,
+  nsDemandMultiplier: 1,
+  ewDemandMultiplier: 1,
 };
 
 const REGIME_TRANSITIONS: Record<
@@ -116,7 +119,7 @@ class SimulatorState {
     return this.clonePhaseMatrix(this.starvation);
   }
 
-  setPlanSplits(splits: SignalPlan["splits"]) {
+  setPlanSplits(splits: SignalPlan["splits"], meta?: PlanMeta) {
     this.plan = {
       ...this.plan,
       splits: INTERSECTIONS.reduce((acc, intersection) => {
@@ -126,6 +129,9 @@ class SimulatorState {
         return acc;
       }, {} as SignalPlan["splits"]),
     };
+    if (meta) {
+      this.plan = { ...this.plan, meta: { ...meta } };
+    }
   }
 
   restoreBaselinePlan() {
@@ -189,16 +195,17 @@ class SimulatorState {
     const regimeFactor =
       this.regime === "RUSH" ? rushHour : this.regime === "INCIDENT" ? incident : 1;
     const corridorBias = 1 + intersectionIndex * 0.04;
-    const phaseBias = phase === "EW" ? 1.05 : 0.95;
+    const directionalBias = phase === "NS" ? this.config.nsDemandMultiplier : this.config.ewDemandMultiplier;
     const stochastic = 1 + (Math.random() * 0.3 - 0.15);
-    return clampPositive(baseArrivalRate * regimeFactor * corridorBias * phaseBias * stochastic);
+    return clampPositive(baseArrivalRate * regimeFactor * corridorBias * directionalBias * stochastic);
   }
 
   private computeDepartures(intersection: IntersectionId, phase: SignalPhase, arrivals: number) {
     const split = this.plan.splits[intersection][phase === "NS" ? "ns" : "ew"];
-    const planRatio = split / this.plan.cycle;
+    const phaseShare = split / (this.plan.cycle / 2);
     const optimizedBoost = this.config.applyOptimizedPlan ? 1.18 : 1;
-    const baseService = this.config.baseArrivalRate * 1.2 * planRatio * optimizedBoost;
+    const directionalBias = phase === "NS" ? this.config.nsDemandMultiplier : this.config.ewDemandMultiplier;
+    const baseService = this.config.baseArrivalRate * directionalBias * phaseShare * 1.05 * optimizedBoost;
     const queuePressure = Math.max(0, this.queues[intersection][phase] - this.config.threshold);
     const starvationBoost = 1 + this.starvation[intersection][phase] * 0.05;
     const service = baseService + queuePressure * this.config.alpha;

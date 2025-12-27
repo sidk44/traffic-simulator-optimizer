@@ -2,14 +2,16 @@
 
 import { useRealtimeTraffic } from "@/lib/useRealtimeTraffic";
 import { useState } from "react";
-import { IntersectionId } from "@/lib/types";
+import { IntersectionId, SignalPlan } from "@/lib/types";
 
 export default function OptimizationPage() {
   const { signalPlan } = useRealtimeTraffic();
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState<"optimize" | "reset" | null>(null);
+  const [applying, setApplying] = useState(false);
   const [modal, setModal] = useState<{ id: IntersectionId; ns: number } | null>(null);
   const [modalNS, setModalNS] = useState(30);
+  const [pendingPlan, setPendingPlan] = useState<SignalPlan | null>(null);
 
   async function runOptimizer() {
     setLoading("optimize");
@@ -20,12 +22,36 @@ export default function OptimizationPage() {
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? "Optimizer failed");
       }
-      setStatus("✓ Optimization running—watch for the plan update via SSE.");
+      setPendingPlan(data.plan ?? null);
+      setStatus("✓ Optimization complete. Review the suggested plan below.");
     } catch (error) {
       setStatus(`✗ ${(error as Error).message}`);
     } finally {
       setLoading(null);
     }
+  }
+
+  async function applyOptimizedPlan() {
+    setApplying(true);
+    setStatus(null);
+    try {
+      const res = await fetch("/api/optimize/apply", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? "Apply failed");
+      }
+      setPendingPlan(null);
+      setStatus("✓ Optimized plan applied and broadcasting via SSE.");
+    } catch (error) {
+      setStatus(`✗ ${(error as Error).message}`);
+    } finally {
+      setApplying(false);
+    }
+  }
+
+  function discardPendingPlan() {
+    setPendingPlan(null);
+    setStatus("✓ Discarded pending optimization.");
   }
 
   async function resetBaseline() {
@@ -85,6 +111,57 @@ export default function OptimizationPage() {
             : "border-l-red-400 text-red-200"
         }`}>
           {status}
+        </div>
+      )}
+
+      {pendingPlan && pendingPlan.meta && (
+        <div className="card-surface space-y-4 border-2 border-sky-400/40 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-sky-400">⏳ Pending Optimization Plan</p>
+              <p className="text-xl font-semibold text-white">Strategy: {pendingPlan.meta.strategy}</p>
+              <p className="text-xs text-slate-500">Generated {new Date(pendingPlan.meta.generatedAt).toLocaleTimeString()}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs uppercase tracking-wide text-slate-400">Estimated Improvement</p>
+              <p className={`text-2xl font-semibold ${pendingPlan.meta.objective < pendingPlan.meta.baselineObjective ? "text-emerald-300" : "text-amber-300"}`}>
+                {(() => {
+                  const base = pendingPlan.meta.baselineObjective;
+                  const opt = pendingPlan.meta.objective;
+                  if (base <= 0) return "N/A";
+                  const improvement = ((base - opt) / base) * 100;
+                  return `${improvement >= 0 ? "+" : ""}${improvement.toFixed(1)}%`;
+                })()}
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {Object.entries(pendingPlan.splits).map(([intersectionId, split]) => (
+              <div key={intersectionId} className="rounded-xl border border-sky-400/20 bg-sky-400/5 p-4">
+                <p className="text-sm font-medium text-sky-300">{intersectionId}</p>
+                <p className="text-lg font-semibold text-white">NS {split.ns}s · EW {split.ew}s</p>
+                <p className="text-xs text-slate-500">
+                  {split.ns !== 30 ? (split.ns > 30 ? `↑ NS +${split.ns - 30}s` : `↓ NS ${split.ns - 30}s`) : "No change"}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={applyOptimizedPlan}
+              disabled={applying}
+              className="flex-1 rounded-lg border border-emerald-400/40 bg-emerald-500/20 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-500/30 disabled:opacity-50"
+            >
+              {applying ? "Applying..." : "✓ Apply Optimized Plan"}
+            </button>
+            <button
+              onClick={discardPendingPlan}
+              disabled={applying}
+              className="rounded-lg border border-white/10 px-4 py-3 text-sm font-medium text-slate-300 transition hover:border-white/30 hover:text-white"
+            >
+              Discard
+            </button>
+          </div>
         </div>
       )}
 

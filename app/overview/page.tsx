@@ -29,7 +29,15 @@ export default function OverviewPage() {
       if (!res.ok || data.ok === false) {
         throw new Error(data.error ?? `Failed to ${label}`);
       }
-      setStatus(`✓ ${label === "reset" ? "Reset" : label === "optimize" ? "Optimizer" : label === "start" ? "Simulator started" : "Simulator stopped"}`);
+      const successLabel =
+        label === "reset"
+          ? "Reset"
+          : label === "optimize"
+            ? "Optimization staged—review in Optimization tab"
+            : label === "start"
+              ? "Simulator started"
+              : "Simulator stopped";
+      setStatus(`✓ ${successLabel}`);
     } catch (error) {
       setStatus(`✗ ${(error as Error).message}`);
     } finally {
@@ -44,7 +52,7 @@ export default function OverviewPage() {
         <div>
           <h1 className="text-3xl font-semibold text-white">Corridor Overview</h1>
           <p className="mt-2 max-w-2xl text-slate-300">
-            Quick snapshot of the 10s and 60s metrics, the most recent events, and any
+            Quick snapshot of the 5s and 60s metrics, the most recent events, and any
             alerts requiring attention.
           </p>
         </div>
@@ -130,7 +138,7 @@ export default function OverviewPage() {
         <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
           <div>
             <p className="text-sm text-slate-400">Phase Congestion</p>
-            <p className="text-lg text-white">10 second aggregates</p>
+            <p className="text-lg text-white">5 second aggregates</p>
           </div>
           <span className="text-xs text-slate-400">Updated {new Date(metrics.updatedAt).toLocaleTimeString()}</span>
         </div>
@@ -147,7 +155,7 @@ export default function OverviewPage() {
               </tr>
             </thead>
             <tbody>
-              {Object.entries(metrics['10s']).map(([intersection, phases]) =>
+              {Object.entries(metrics['5s']).map(([intersection, phases]) =>
                 Object.entries(phases).map(([phase, values]) => {
                   const throughputValue = values.throughput ?? values.departures;
                   const delayValue = values.delayProxy ?? 0;
