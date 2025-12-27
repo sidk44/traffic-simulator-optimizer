@@ -74,6 +74,9 @@ function buildMetricsWindow(): MetricsWindow {
         avgSpeed: randomBetween(18, 45),
         arrivals: randomBetween(5, 20),
         departures: randomBetween(5, 20),
+        throughput: randomBetween(5, 20),
+        delayProxy: randomBetween(0, 30),
+        congestionScore: Math.random(),
       };
       return phaseAcc;
     }, {} as MetricsWindow[IntersectionId]);
