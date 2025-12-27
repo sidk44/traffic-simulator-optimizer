@@ -272,16 +272,7 @@ The adaptive optimizer implements a two-stage approach:
 
 ## 📚 Additional Resources
 
-- **GitHub Repository:** [sidk44/traffic-simulator-optimizer](https://github.com/sidk44/traffic-simulator-optimizer)
 - **Next.js Documentation:** [nextjs.org](https://nextjs.org/docs)
 - **TypeScript Handbook:** [typescriptlang.org](https://www.typescriptlang.org/docs/)
 - **Recharts Gallery:** [recharts.org](https://recharts.org/)
 
-## 📝 License
-
-MIT License - See LICENSE file in repository
-
----
-
-**Adaptive Traffic Signal Optimization System**  
-_For research, education, and traffic engineering applications_
