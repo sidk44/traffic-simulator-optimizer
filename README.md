@@ -1,88 +1,131 @@
 # 🚦 Adaptive Traffic Control System
 
-A real-time adaptive traffic signal optimization platform built with Next.js 14, TypeScript, Recharts, and SSE (Server-Sent Events). Monitor live traffic metrics, run optimization algorithms, and simulate scenarios from an interactive web dashboard.
+An adaptive traffic signal optimization platform for multi-intersection traffic management. Built with Next.js 14, TypeScript, and Server-Sent Events (SSE), this system enables real-time monitoring of traffic metrics, automated signal optimization via AFAPC algorithms, and scenario-based simulation for testing adaptive control strategies.
+
 
 ---
 
-## ✨ Features
+## 🚀 Getting Started
 
-### 📊 **Live Telemetry Dashboard**
+### **Prerequisites**
 
-- Real-time queue lengths, throughput, and average speed per intersection
-- Phase-level congestion metrics (8 phases: I1-I4 × NS/EW)
-- Active alerts for sustained congestion
-- Live event log with timestamps
+- **Node.js**: v18.0.0 or higher
+- **npm**: v9.0.0 or higher
+- **Git**: For cloning the repository
 
-### 📈 **Analytics & Trending**
+### **Installation & Setup**
 
-- Time-series charts for Queue Length, Speed, and Throughput
-- 30-event history buffer
-- 10s and 60s aggregated windows
-- Automatic metric updates every 10 seconds
+1. **Clone the repository:**
 
-### 🎛️ **Signal Optimization**
+   ```bash
+   git clone https://github.com/sidk44/traffic-simulator-optimizer.git
+   cd traffic-simulator-optimizer
+   ```
 
-- AFAPC + MPC-lite optimizer runs every 60s or on-demand
-- Automated plan adjustment based on queue pressure and starvation
-- Manual stage adjustment (drag slider to tune NS/EW splits)
-- Plan metadata tracking (strategy: baseline/optimized/suggested)
-- Instant broadcast of plan changes via SSE
+2. **Install dependencies:**
 
-### 🧪 **Scenario Simulator**
+   ```bash
+   npm install
+   ```
 
-- Pre-configured scenarios: Event Surge, Lane Closure, Rush Hour Peak
-- 1 Hz synthetic traffic simulator with Markov regime transitions
-- Spatial propagation and queue dynamics
-- Configurable noise and packet loss
-- Real-time scenario application
+3. **Verify setup:**
+   ```bash
+   npm run lint
+   ```
 
-### 🔄 **Closed-Loop Control**
+### **Running the Application**
 
-- Automatic optimizer execution
-- Starvation-aware fairness boost
-- Baseline vs. optimized KPI comparison
-- Reset to 30/30 baseline at any time
-
----
-
-## 🚀 Quick Start
-
-### **Installation**
+**Development mode:**
 
 ```bash
-npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`
+The application will be accessible at `http://localhost:3000`
 
-### **Test All Features (5 minutes)**
+**Production build:**
 
-1. **Overview** (`/overview`) → Click "Start Simulator"
-2. **Wait 10s** → Metrics populate, queues shown
-3. **Analytics** (`/analytics`) → Watch 3 charts update in real-time
-4. **Simulator** (`/simulator`) → Click "Rush hour peak" scenario
-5. **Optimization** (`/optimization`) → Click "Run Optimizer" → Splits adjust
-6. **Overview** → Queues stabilize after optimization
+```bash
+npm run build
+npm start
+```
+
+### **Quick Verification (5 Minutes)**
+
+1. Navigate to **Overview** (`http://localhost:3000/overview`)
+2. Click **"Start Simulator"** button
+3. Wait 10 seconds for metrics to populate
+4. Visit **Analytics** tab to observe real-time chart updates
+5. Go to **Simulator** and apply **"Rush Hour Peak"** scenario
+6. Return to **Overview** and observe queue increase
+7. Navigate to **Optimization** and click **"Run Optimizer"**
+8. Observe signal timing adjustments and queue stabilization on **Overview**
 
 ---
 
-## 🏗️ Architecture
+## ✨ Core Features
 
-### **Frontend**
+### 📊 Live Telemetry Dashboard
 
-- Next.js 14 App Router
-- Real-time hook: `useRealtimeTraffic` (SSE client)
-- Charts: Recharts
-- Styling: Tailwind CSS
+- Real-time aggregation of queue lengths, vehicle throughput, and average speed across all intersections
+- Per-phase congestion metrics (8 phases: 4 intersections × 2 directions)
+- Automated alert generation for sustained congestion (threshold: 75% utilization)
+- Time-stamped event log with system state annotations
 
-### **Backend**
+### 📈 Analytics & Performance Metrics
 
-- SSE Broker: Connection + caching
-- Simulator: 1 Hz tick loop, phase sampling
-- Aggregator: 10s/60s metrics, alerts
-- Optimizer: AFAPC + MPC-lite
-- State: Queue + buffer + starvation logic
+- Time-series visualization: Queue Length, Average Speed, Vehicle Throughput
+- Historical data buffer: 30-event rolling window with 10-second and 60-second aggregation
+- Real-time metric refresh: 10-second intervals
+- Automatic trend detection and visualization via Recharts
+
+### 🎛️ Adaptive Signal Optimization
+
+- AFAPC (Adaptive Fuzzy Actuated Pressure Control) + MPC-lite algorithm
+- Execution: Automatic (60-second intervals) or on-demand
+- Optimization criteria: Queue pressure, phase starvation, and spillback prevention
+- Manual override capability: Stage timing adjustment per intersection (10-50 second range)
+- Plan metadata: Strategy classification and optimization timestamp tracking
+- Real-time dissemination via Server-Sent Events (SSE)
+
+### 🧪 Traffic Scenario Simulator
+
+- Three pre-configured operational scenarios:
+  - **Event Surge**: Incident-induced demand increase (1.2× multiplier)
+  - **Lane Closure**: Capacity reduction (simulating infrastructure disruption)
+  - **Rush Hour Peak**: Peak-period demand simulation (1.6× multiplier)
+- Synthetic traffic generator with Markov regime transitions for demand modeling
+- Vehicle propagation model with queue dynamics and spatial correlation
+- Real-time scenario application with immediate feedback
+
+### 🔄 Closed-Loop Control Architecture
+
+- Continuous feedback loop: Simulation → Metrics → Optimization → Signal Plan → Simulation
+- Fairness mechanisms: Phase starvation detection and compensation
+- Performance comparison: Baseline (30/30 splits) vs. optimized allocation
+- System reset capability: Return to default baseline at any time
+
+---
+
+## 🏗️ System Architecture
+
+### **Frontend Layer**
+
+- **Framework:** Next.js 14 with App Router (React 18)
+- **Type Safety:** TypeScript with strict mode
+- **State Management:** `useRealtimeTraffic` custom hook for SSE consumption
+- **Visualization:** Recharts for time-series and aggregate metrics
+- **Styling:** Tailwind CSS with dark theme
+- **UI Components:** Modal dialogs, responsive grids, real-time status indicators
+
+### **Backend Layer**
+
+- **Server Runtime:** Node.js with Next.js API Routes
+- **Real-time Communication:** Server-Sent Events (SSE) for state broadcast
+- **Traffic Simulator:** 1 Hz tick-based generator with stochastic demand
+- **Metrics Aggregation:** 10-second and 60-second rolling windows with alert thresholding
+- **Signal Optimizer:** AFAPC algorithm with MPC-lite heuristic
+- **State Management:** Intersection queues, vehicle buffers, phase starvation counters
 
 ### **API Routes**
 
@@ -98,162 +141,147 @@ Open `http://localhost:3000`
 
 ---
 
-## 📁 Structure
+## 📁 Project Structure
 
 ```
 ├── app/
-│   ├── page.tsx              # Home (4 panels)
-│   ├── overview/page.tsx      # Live metrics + controls
-│   ├── analytics/page.tsx     # 3 charts
-│   ├── optimization/page.tsx  # Plan editor
-│   ├── simulator/page.tsx     # Scenarios
+│   ├── page.tsx              # Home landing page
+│   ├── overview/page.tsx      # Live metrics dashboard + controls
+│   ├── analytics/page.tsx     # Time-series analytics charts
+│   ├── optimization/page.tsx  # Signal plan editor
+│   ├── simulator/page.tsx     # Scenario simulator interface
 │   └── api/
-│       ├── stream/route.ts    # SSE
-│       ├── start/route.ts     # Start
-│       ├── stop/route.ts      # Stop
-│       ├── config/route.ts    # Config
-│       ├── optimize/route.ts  # Optimizer
-│       ├── reset/route.ts     # Reset
-│       └── plan/route.ts      # Manual plan
+│       ├── stream/route.ts    # Server-Sent Events endpoint
+│       ├── start/route.ts     # Simulator startup
+│       ├── stop/route.ts      # Simulator shutdown
+│       ├── config/route.ts    # Configuration endpoint
+│       ├── optimize/route.ts  # Optimizer execution
+│       ├── reset/route.ts     # Reset to baseline
+│       └── plan/route.ts      # Manual plan adjustment
 ├── lib/
-│   ├── types.ts              # TypeScript types
-│   └── useRealtimeTraffic.ts # SSE hook
+│   ├── types.ts              # TypeScript type definitions
+│   └── useRealtimeTraffic.ts # Real-time data hook
 └── server/
-    ├── sse/broker.ts         # SSE manager
-    ├── sim/state.ts          # Simulator core
-    ├── sim/simulator.ts      # 1 Hz loop
-    ├── stream/aggregator.ts  # Metrics
-    └── or/optimizer.ts       # AFAPC optimizer
+    ├── sse/broker.ts         # SSE connection manager
+    ├── sim/state.ts          # Simulator state machine
+    ├── sim/simulator.ts      # 1 Hz simulation loop
+    ├── stream/aggregator.ts  # Metrics aggregation engine
+    └── or/optimizer.ts       # AFAPC optimization algorithm
 ```
 
 ---
 
-## 🧪 Testing Checklist
+## ⚙️ Configuration & Customization
 
-### Overview Page
+### **Default Simulator Parameters**
 
-- ✅ Start/Stop buttons work
-- ✅ Metrics update every 10s
-- ✅ Alerts appear when congestion > 75
-- ✅ Events log shows live updates
-- ✅ Reset clears all metrics
+Located in [server/sim/state.ts](server/sim/state.ts):
 
-### Analytics Page
+| Parameter            | Default     | Description                            |
+| -------------------- | ----------- | -------------------------------------- |
+| `baseArrivalRate`    | 12 veh/hr   | Mean vehicle arrivals per intersection |
+| `rushHourMultiplier` | 1.6×        | Peak-period demand scaling factor      |
+| `incidentMultiplier` | 1.2×        | Incident-induced demand increase       |
+| `optimizerThreshold` | 18 vehicles | Queue length triggering optimization   |
+| `simulatorTickRate`  | 1 Hz        | Update frequency (1 second cycles)     |
 
-- ✅ Queue chart updates
-- ✅ Speed chart fluctuates 5-45 mph
-- ✅ Throughput shows smooth area
-- ✅ 30+ data points accumulate
+### **Runtime Configuration**
 
-### Optimization Page
-
-- ✅ Optimizer changes splits from 30/30
-- ✅ Reset returns to 30/30
-- ✅ Stage adjustment modal works
-- ✅ Splits clamp to 10-50s range
-- ✅ Plan metadata shows strategy + timestamp
-
-### Simulator Page
-
-- ✅ Event surge increases arrivals
-- ✅ Lane closure reduces throughput
-- ✅ Rush hour spikes demand
-- ✅ Recent events show system notes
-
-### Cross-Page
-
-- ✅ Open 2 tabs → Changes sync via SSE
-- ✅ No console errors
-- ✅ No duplicate key warnings
-- ✅ `/api/stream` stays open (Network tab)
-
----
-
-## ⚙️ Configuration
-
-Default simulator settings in `server/sim/state.ts`:
-
-- Base arrival: 12 veh/hr
-- Rush hour: 1.6× multiplier
-- Incident: 1.2× multiplier
-- Optimizer threshold: 18 veh
-
-Update via POST `/api/config`:
-
-```json
-{
-  "baseArrivalRate": 15,
-  "rushHour": 2.0
-}
-```
-
----
-
-## 🧠 Optimizer (AFAPC + MPC-lite)
-
-1. Reads queue + throughput + starvation
-2. Boosts starved phases +5% green
-3. Tests ±1s adjustments, picks best
-4. Evaluates 3 demand scenarios
-5. Penalizes spillback (queue > 1.25× throughput)
-6. Outputs optimized splits + KPIs
-
-**Runs:** Every 60s (if enabled) or on-demand via button
-
----
-
-## 🎨 UI Features
-
-- Dark theme (slate/sky/emerald)
-- Real-time status indicators
-- Modal dialogs for adjustments
-- Responsive grids
-- Loading states
-- Smooth chart animations
-
----
-
-## 🔧 Troubleshooting
-
-**No data?**
-
-- Click "Start" button on Overview
-- Check `/api/stream` in Network tab (status 200, pending)
-- Wait 10s for metrics
-
-**Optimizer not working?**
-
-- Wait 60+ seconds or click "Run Optimizer" manually
-- Need 60s of metrics history first
-
-**TypeScript errors?**
+Update simulator parameters via API:
 
 ```bash
-npm run lint
-npm run dev
+curl -X POST http://localhost:3000/api/config \
+  -H "Content-Type: application/json" \
+  -d '{
+    "baseArrivalRate": 15,
+    "rushHourMultiplier": 2.0,
+    "incidentMultiplier": 1.3
+  }'
 ```
 
 ---
 
-## 📊 Demo Flow (5 min)
+## 🧠 Optimization Algorithm (AFAPC + MPC-lite)
 
-1. Home → Overview
-2. Start Simulator
-3. Wait 10s, check metrics
-4. Analytics → Watch charts
-5. Simulator → "Rush hour peak"
-6. Overview → Queues spike
-7. Optimization → "Run Optimizer"
-8. Overview → Queues drop (optimized splits)
-9. Optimization → "Stage Adjust I2" → Apply
-10. Overview → I2 splits updated instantly
+### **Algorithm Overview**
+
+The adaptive optimizer implements a two-stage approach:
+
+**Stage 1: State Assessment**
+
+1. Aggregate queue lengths, throughput rates, and phase starvation counters
+2. Identify saturated phases (queue > optimizer threshold)
+3. Detect fairness violations (starvation > 60 seconds)
+
+**Stage 2: Plan Synthesis**
+
+1. Apply starvation compensation: Increase green time for starved phases by 5%
+2. Generate candidate timing adjustments: ±1 second variants
+3. Evaluate each candidate against 3 demand scenarios (normal, surge, incident)
+4. Score candidates using KPI: Minimize total queue while preventing spillback
+5. Apply spillback penalty: 1.25× throughput capacity threshold
+6. Select optimal splits; revert to baseline if no improvement detected
+
+### **Execution Schedule**
+
+- **Periodic:** Every 60 seconds (automatic)
+- **On-demand:** Manual trigger via "Run Optimizer" button
+- **Cooldown:** Prevents oscillation through update rate limiting
 
 ---
+
+## 📊 Demonstration Walkthrough
+
+**Objective:** Showcase simulator, metrics, and optimization workflow (5 minutes)
+
+### **Step 1: Initialize Baseline (1 min)**
+
+1. Start application: `npm run dev` → navigate to `http://localhost:3000`
+2. Select **Overview** from home page
+3. Click **"Start Simulator"** button
+4. Observe initial system state: Queue lengths = 0, all phases at 30-second baseline
+
+### **Step 2: Verify Metrics Collection (1 min)**
+
+1. Navigate to **Analytics** tab
+2. Confirm chart data points appearing (Queue Length, Speed, Throughput)
+3. Return to **Overview**; verify metric table updates every 10 seconds
+
+### **Step 3: Apply Demand Scenario (1 min)**
+
+1. Visit **Simulator** tab
+2. Click **"Rush Hour Peak"** button
+3. Return to **Overview**: Observe queue lengths increasing across all phases
+
+### **Step 4: Run Optimization (1 min)**
+
+1. Navigate to **Optimization** tab
+2. Click **"Run Optimizer"** button
+3. Observe signal plan updates (splits may change from 30/30 baseline)
+4. Return to **Overview**: Queues should decrease, indicating improved efficiency
+
+### **Step 5: Manual Adjustment (1 min)**
+
+1. In **Optimization** tab, click **"Stage Adjust I2"**
+2. Drag NS slider to 35 seconds (EW adjusts to 25 seconds)
+3. Click **"Apply"** button
+4. Observe immediate update on **Overview**: I2 metrics reflect new timing
+
+---
+
+
+## 📚 Additional Resources
+
+- **GitHub Repository:** [sidk44/traffic-simulator-optimizer](https://github.com/sidk44/traffic-simulator-optimizer)
+- **Next.js Documentation:** [nextjs.org](https://nextjs.org/docs)
+- **TypeScript Handbook:** [typescriptlang.org](https://www.typescriptlang.org/docs/)
+- **Recharts Gallery:** [recharts.org](https://recharts.org/)
 
 ## 📝 License
 
-MIT
+MIT License - See LICENSE file in repository
 
 ---
 
-**Built with ❤️ for adaptive traffic control**
+**Adaptive Traffic Signal Optimization System**  
+_For research, education, and traffic engineering applications_
